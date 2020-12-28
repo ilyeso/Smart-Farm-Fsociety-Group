@@ -1,89 +1,298 @@
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#  include <config.h>
 #endif
 
 #include <gtk/gtk.h>
 
 #include "callbacks.h"
-#include "interface.h" 
+#include "interface.h"
 #include "support.h"
-#include "capteur.h"
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-GtkTreeIter iter1;
-GtkListStore *listf;
-void toggled_func(GtkCellRendererToggle *cell_renderer,gchar *paths,gpointer user_data) //selection
+#include "LISTEVIEWAPPAREIL.h"
+#include "reservation.h"
+#include "panne.h"
+
+void
+on_buttonAjouter_appareil_clicked      (GtkWidget       *objet,
+                                        gpointer         user_data)
 {
-    GtkTreeIter iter;
-    GtkTreePath *path;
-    gboolean boolean;
-    FILE* f;
-    gchar *Numero;
-    path = gtk_tree_path_new_from_string (paths);
-    gtk_tree_model_get_iter (GTK_TREE_MODEL (user_data),&iter,path);
-    gtk_tree_model_get (GTK_TREE_MODEL (user_data),&iter,SELECTION,&boolean,Eid,&Numero,-1);
-    gtk_list_store_set (user_data, &iter,SELECTION, !boolean,-1);
-    listf=user_data;
-    iter1=iter;
-    if (!boolean){
-    f=fopen("idtmp.txt","a");
-    if(f!=NULL) 
-    {
-    fprintf(f,"%s \n",Numero);
-    fclose(f);}}       
+appareil a;
+
+GtkWidget *input1, *input2, *input3, *input4;
+GtkWidget *fenetre_ajouter;
+
+fenetre_ajouter=lookup_widget(objet,"fenetre_ajouter");
+
+input1=lookup_widget(objet,"Id");
+input2=lookup_widget(objet,"nom");
+input3=lookup_widget(objet,"etat");
+input4=lookup_widget(objet,"dateachat");
+
+strcpy(a.id,gtk_entry_get_text(GTK_ENTRY(input1)));
+strcpy(a.nom,gtk_entry_get_text(GTK_ENTRY(input2)));
+strcpy(a.etat,gtk_entry_get_text(GTK_ENTRY(input3)));
+strcpy(a.dateachat,gtk_entry_get_text(GTK_ENTRY(input4)));
+ajouter_appareil(a);
 }
 
 
 void
-on_treeview2_row_activated             (GtkTreeView     *treeview,
+on_ButtonAfficher_liste_appareils_clicked
+                                        (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *fenetre_ajouter;
+GtkWidget *fenetre_afficher;
+GtkWidget *treeview1;
+
+fenetre_ajouter=lookup_widget(objet,"fenetre_ajouter");
+
+gtk_widget_destroy(fenetre_ajouter);
+fenetre_afficher=lookup_widget(objet,"fenetre_afficher");
+fenetre_afficher=create_fenetre_afficher();
+
+gtk_widget_show(fenetre_afficher);
+
+treeview1=lookup_widget(fenetre_afficher,"treeview1");
+afficher_appareil(treeview1);
+}
+
+void
+on_treeview1_row_activated             (GtkTreeView     *treeview,
                                         GtkTreePath     *path,
                                         GtkTreeViewColumn *column,
                                         gpointer         user_data)
 {
-capteur c;
 
-GtkTreeIter iter ;
-gchar* id ;
-gchar* type;
-gchar* marque;
-gchar* place; 
-gchar* valMin  ;
-gchar* valMax ;
-gchar* inOut ;
-gchar* perm ;
+	GtkTreeIter iter;
+	gchar* id;
+	gchar* nom;
+	gchar* etat;
+	gchar* dateachat;
+	appareil a;
 
+	GtkTreeModel *model = gtk_tree_view_get_model(treeview);
 
-GtkTreeModel *model = gtk_tree_view_get_model(treeview);
-if (gtk_tree_model_get_iter(model,&iter,path))
-{
-gtk_tree_model_get(GTK_LIST_STORE(model),&iter,0,&id,1,&type,2,&marque,3,&place,4,&valMin,5,&valMax,6,&inOut,7,&perm,-1);
-
-
-strcpy(c.id,id);
-
-strcpy(c.type,type);
-strcpy(c.marque,marque);
-strcpy(c.place,place);
-
-strcpy(c.valMin,valMin);
-
-strcpy(c.valMax,valMax);
-
-strcpy(c.inOut,inOut);
-strcpy(c.perm,perm);
-
-//c= rech_capteur("capteur.txt",c.id) ; /// a verifier si la selection prends charge 
-
-
-
-}
-
+	if (gtk_tree_model_get_iter(model, &iter, path))
+	{
+		//obtention des valeurs de la ligne selectionnée
+		gtk_tree_model_get (GTK_LIST_STORE (model) , &iter, 0, &id, 1, &nom, 2, &etat, 3,  &dateachat,4,-1);	
+		strcpy(a.id,id);
+		strcpy(a.nom,nom);
+		strcpy(a.etat,etat);
+		strcpy(a.dateachat,dateachat);
+		//appel de la fonction de suppression 
+		supprimer_appareil(a);
+		//mise à jour de l'affichage de la treeview
+		afficher_appareil(treeview);
+	}
 }
 
 
 void
-on_buttonAlerte_clicked                (GtkButton       *button,
+on_buttonRetour_liste_clicked          (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *fenetre_ajouter, *fenetre_afficher;
+fenetre_afficher=lookup_widget(objet, "fenetre_afficher");
+
+gtk_widget_destroy(fenetre_afficher);
+fenetre_ajouter=create_fenetre_ajouter();
+gtk_widget_show(fenetre_ajouter);
+}
+
+
+void
+on_buttonValidation_de_reservation_clicked
+                                        (GtkWidget       *objet_graphique,
+                                        gpointer         user_data)
+{
+GtkWidget* Jour;
+GtkWidget* Mois;
+GtkWidget* Annee;
+GtkWidget* Combobox1;
+GtkWidget* Combobox2;
+GtkWidget* Combobox3;
+
+char num[10];
+Date date_rsrv;
+char nom_atelier[50][10];
+int heure_rsrv;
+int i,n;
+
+Jour = lookup_widget(objet_graphique,"Jour");
+Mois = lookup_widget(objet_graphique,"Mois");
+Annee = lookup_widget(objet_graphique,"Annee");
+Combobox1 = lookup_widget(objet_graphique,"combobox1");
+Combobox2 = lookup_widget(objet_graphique,"combobox2");
+Combobox3 = lookup_widget(objet_graphique,"combobox3");
+
+date_rsrv.Jour = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (Jour));
+date_rsrv.Mois = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (Mois));
+date_rsrv.Annee = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (Annee));
+
+if(strcmp("8h==>12h",gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combobox1)))==0)
+heure_rsrv=1;
+else
+heure_rsrv=2;
+
+
+n=tab_atelier_dispo (nom_atelier,date_rsrv,heure_rsrv);
+
+for(i=0;i<n;i++)
+	{
+  		gtk_combo_box_append_text(GTK_COMBO_BOX(Combobox3),_(nom_atelier[i]));
+	}
+
+}
+
+void
+on_buttonConfirmer_clicked             (GtkWidget       *objet_graphique,
+                                        gpointer         user_data)
+{
+GtkWidget* Jour;
+GtkWidget* Mois;
+GtkWidget* Annee;
+GtkWidget* Combobox1;
+GtkWidget* Combobox2;
+GtkWidget* Combobox3;
+GtkWidget* sortie;
+reservationAtelier a;
+
+Combobox1 = lookup_widget(objet_graphique,"combobox1");
+sortie = lookup_widget(objet_graphique,"label15DATE");
+Jour = lookup_widget(objet_graphique,"jour");
+Mois = lookup_widget(objet_graphique,"mois");
+Annee = lookup_widget(objet_graphique,"annee");
+Combobox2 = lookup_widget(objet_graphique,"combobox2");
+Combobox3 = lookup_widget(objet_graphique,"combobox3");
+a.date_rsrv.Jour=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON (Jour));
+a.date_rsrv.Mois=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON (Mois));
+a.date_rsrv.Annee = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON (Annee));
+if(strcmp("8h==>12h",gtk_combo_box_get_active_text(GTK_COMBO_BOX (Combobox1)))==0)
+a.heure_rsrv=1;
+else
+a.heure_rsrv=2;
+strcpy(a.num,gtk_combo_box_get_active_text(GTK_COMBO_BOX(Combobox3)));
+reserver_atelier(a);
+gtk_label_set_text(GTK_LABEL(sortie),"Reservtion reussite");
+}
+
+
+void
+on_buttonsuivant_clicked               (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *fenetre_reservation, *fenetre_afficher;
+fenetre_afficher=lookup_widget(objet, "fenetre_afficher");
+
+gtk_widget_destroy(fenetre_afficher);
+fenetre_reservation=create_fenetre_reservation();
+gtk_widget_show(fenetre_reservation);
+}
+
+int choix[]={0,0};
+void
+on_buttonconfirmationfinale_clicked    (GtkWidget       *objet_graphique,
+                                        gpointer         user_data)
+{
+char texte[100]="";
+GtkWidget* output;
+output = lookup_widget(objet_graphique,"label2");
+Resultat(choix,texte);
+gtk_label_set_text(GTK_LABEL(output),texte);
+}
+
+
+void
+on_buttonRETOUR_WINDOW4_clicked        (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *fenetre_ajouter, *fenetre_panne;
+fenetre_panne=lookup_widget(objet, "fenetre_panne");
+
+gtk_widget_destroy(fenetre_panne);
+fenetre_ajouter=create_fenetre_ajouter();
+gtk_widget_show(fenetre_ajouter);
+}
+
+
+void
+on_buttonsuivantwindow3_clicked        (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *fenetre_reservation, *fenetre_panne;
+fenetre_reservation=lookup_widget(objet, "fenetre_reservation");
+
+gtk_widget_destroy(fenetre_reservation);
+fenetre_panne=create_fenetre_panne();
+gtk_widget_show(fenetre_panne);
+}
+
+
+void
+on_radiobuttonPanneexterne_toggled     (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+if (gtk_toggle_button_get_active(togglebutton))
+{choix[0]=1;}
+}
+
+
+
+void
+on_radiobuttonPanneinterne_toggled     (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+if (gtk_toggle_button_get_active(togglebutton))
+{choix[1]=1;}
+}
+
+void
+on_checkbuttonoui_toggled              (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+if (gtk_toggle_button_get_active(togglebutton))
+{choix[0]=1;}
+}
+
+
+void
+on_checkbuttonNon_toggled              (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+if (gtk_toggle_button_get_active(togglebutton))
+{choix[1]=1;}
+}
+
+
+void
+on_buttonokwindow5_clicked             (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *fenetre_ajouter, *fenetre_operationreussite;
+fenetre_operationreussite=lookup_widget(objet, "fenetre_operationreussite");
+
+gtk_widget_destroy(fenetre_operationreussite);
+fenetre_ajouter=create_fenetre_ajouter();
+gtk_widget_show(fenetre_ajouter);
+}
+
+
+void
+on_buttonretourwindow5_clicked         (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *fenetre_ajouter, *fenetre_operationnonreussite;
+fenetre_operationnonreussite=lookup_widget(objet, "fenetre_operationnonreussite");
+
+gtk_widget_destroy(fenetre_operationnonreussite);
+fenetre_ajouter=create_fenetre_ajouter();
+gtk_widget_show(fenetre_ajouter);
+}
+
+
+void
+on_buttonsuppressionwindow7_clicked    (GtkButton       *button,
                                         gpointer         user_data)
 {
 
@@ -91,329 +300,64 @@ on_buttonAlerte_clicked                (GtkButton       *button,
 
 
 void
-on_buttonRechercheCapteur_clicked      (GtkButton       *button,
+on_buttonmodifierwindow7_clicked       (GtkButton       *button,
+                                        gpointer         user_data)
+{
+GtkWidget *window2;
+	GtkWidget *window7;
+	window2 = lookup_widget(objet_graphique,"fenetre_ajouter");
+	window7 = create_fenetre_modificationousuppression();
+	gtk_widget_destroy(window2);
+	gtk_widget_show(window7);
+}
+
+
+void
+on_buttonrecherchewindow7_clicked      (GtkButton       *objet_graphique,
+                                        gpointer         user_data)
+{
+appareil a;
+int r;
+char texte[100];
+char texte2[100];
+GtkWidget *input1;
+GtkWidget *input2;
+GtkWidget *input3;
+GtkWidget *input4;
+GtkWidget *status;
+
+	input1 = lookup_widget(objet_graphique,"entry10");
+	input2 = lookup_widget(objet_graphique,"entry7");
+	input3 = lookup_widget(objet_graphique,"entry8");
+	input4 = lookup_widget(objet_graphique,"entry9");
+	status = lookup_widget(objet_graphique,"label_status");
+strcpy(texte,gtk_entry_get_text(GTK_ENTRY(input1)));
+r= rechercher_appareil(texte);
+if (r==0)
+{
+strcpy(texte2,"id non trouvé");
+gtk_label_set_text(GTK_LABEL(status),texte2);
+} 
+else {
+	strcpy(texte2,"id trouvé");
+	gtk_label_set_text(GTK_LABEL(status),texte2);	
+	strcpy(a.id,find_appareil(texte).a);
+	strcpy(a.nom,find_appareil(texte).nom);
+	strcpy(a.etat,find_appareil(texte).etat);
+	strcpy(a.dateachat,find_appareil(texte).dateachat);
+	gtk_entry_set_text(GTK_ENTRY(input1),a.id);
+	gtk_entry_set_text(GTK_ENTRY(input2),a.nom);
+	gtk_entry_set_text(GTK_ENTRY(input3),a.etat);
+	gtk_entry_set_text(GTK_ENTRY(input4),a.dateachat);
+	
+}
+}
+
+
+void
+on_buttonsuppressionwindow8_clicked    (GtkButton       *button,
                                         gpointer         user_data)
 {
 
 }
-
-
-void
-on_buttonModifierCap_clicked           (GtkWidget       *button,
-                                        gpointer         user_data) //// 1er  modifier clicked
-{
-GtkWidget *formulaire;
-GtkWidget *principal;
- GtkWidget *combobox;
- GtkWidget *entry1 ;
- GtkWidget *entry2;
- GtkWidget *entry3;
- GtkWidget *spinbutton1;
- GtkWidget *spinbutton2;
- GtkWidget *radiobutton1;
- GtkWidget *radiobutton2;
- GtkWidget *radiobutton3;
-   GtkWidget *checkbox1 ;
-    GtkWidget *checkbox2 ;
-    GtkWidget *test ;
- FILE *f, *f1;
-capteur c ; 
- char id[20] ;
- int valmin , valmax;
-
-  principal=lookup_widget(button,"windowGestion_Capteur");
-  
-
-  formulaire=lookup_widget(button,"windowAjouterCap");
-  formulaire=create_windowAjouterCap();
-
- entry1=lookup_widget(formulaire,"entryNumCap");
- combobox=lookup_widget(button,"comboboxTypeCapteur");
- entry2=lookup_widget(button,"entryMarqueCap");
- entry3=lookup_widget(button,"entryPlace");
- spinbutton1=lookup_widget(button,"spinbuttonValMin");
- spinbutton2=lookup_widget(button,"spinbuttonValMax");
- radiobutton1=lookup_widget(button,"radiobutton_etanche");
- radiobutton2=lookup_widget(button,"radiobutton_perm");
- radiobutton3=lookup_widget(button,"radiobuttonNone");
-checkbox1 =lookup_widget(button,"checkbutton_Inter");
- checkbox2 =lookup_widget(button,"checkbutton_exter");
-  f=fopen("idtmp.txt","r");
-  fscanf(f,"%s \n",id);  
-  fclose(f);
- c= rech_capteur("capteur.txt",id) ; 
-  gtk_entry_set_text (GTK_ENTRY (entry1), _(c.id));
-  gtk_entry_set_text (GTK_ENTRY (entry2), _(c.marque));
-  gtk_entry_set_text (GTK_ENTRY (entry3), _(c.place));
-  /*gtk_combo_box_set_active(GTK_COMBO_BOX (combobox),0);
-  valmin=atoi(c.valMin) ; 
-  valmax = atoi(c.valMax) ;
-  gtk_spin_button_set_value(GTK_SPIN_BUTTON(spinbutton1),valmin);
-  gtk_spin_button_set_value(GTK_SPIN_BUTTON(spinbutton1),valmax);
-   if(strcmp(c.inOut,"Interieur")==0)
-  {gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbox1),TRUE);}
-   if(strcmp(c.inOut,"Exterieur")==0)
-  {gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(checkbox2),TRUE);}
-
-  if(strcmp(c.perm,"Permeable")==0)
-  {gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radiobutton2),TRUE);}
-  else if (strcmp(c.inOut,"Etanche")==0)
-  {gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(radiobutton1),TRUE);}
- */
- test=lookup_widget(formulaire,"labeltest");
-  gtk_label_set_text (GTK_LABEL (test), _(c.marque));
-  
-  gtk_widget_show(formulaire);
-
-
-}
-
-
-void
-on_buttonSupprimerCap_clicked          (GtkWidget       *objet,
-                                        gpointer         user_data)  /// Supprimer un capteur 
-{
-GtkWidget *message;
-GtkWidget *principal;
-
-message=lookup_widget(objet,"windowConfirmSupp");
-message=create_windowConfirmSupp();
-gtk_widget_show(message);
-}
-
-
-void
-on_buttonAjoutercap_clicked            (GtkWidget       *objet,
-                                        gpointer         user_data) /// ajouter un capteur 
-{
-GtkWidget *formulaire;
-GtkWidget *principal;
-
-
-principal=lookup_widget(objet,"windowGestion_Capteur");
-gtk_widget_destroy(principal);
-formulaire=lookup_widget(objet,"windowAjouterCap");
-formulaire=create_windowAjouterCap();
-gtk_widget_show(formulaire);
-}
-
-
-void
-on_buttonHomeGestCap_clicked           (GtkButton       *button,
-                                        gpointer         user_data)
-{
-
-}
-
-
-void
-on_buttonAnnulerSuppCap_clicked        (GtkWidget       *objet,
-                                        gpointer         user_data)
-{
-
-}
-
-
-void
-on_radiobutton_exter_group_changed     (GtkRadioButton  *radiobutton,
-                                        gpointer         user_data)
-{
-
-}
-
-
-void
-on_radiobutton_Inter_group_changed     (GtkRadioButton  *radiobutton,
-                                        gpointer         user_data)
-{
-
-}
-
-
-void
-on_buttonAjoutFinalCap_clicked         (GtkWidget       *button,
-                                        gpointer         user_data)   /// ajout final du capteur 
-{
-  GtkWidget *window ;
- GtkWidget *combobox;
- GtkWidget *entry1 ;
- GtkWidget *entry2;
- GtkWidget *entry3;
- GtkWidget *spinbutton1;
- GtkWidget *spinbutton2;
- GtkWidget *radiobutton1;
- GtkWidget *radiobutton2;
- GtkWidget *radiobutton3;
- GtkWidget *checkbox1 ;
- GtkWidget *checkbox2 ;
- GtkWidget *dialog1;
- capteur c;
- FILE *f;
- int valmin,valmax;
- 
- window=lookup_widget(button,"windowAjouterCap");
- entry1=lookup_widget(button,"entryNumCap");
- combobox=lookup_widget(window,"comboboxTypeCapteur");
- entry2=lookup_widget(button,"entryMarqueCap");
- entry3=lookup_widget(button,"entryPlace");
- spinbutton1=lookup_widget(button,"spinbuttonValMin");
- spinbutton2=lookup_widget(button,"spinbuttonValMax");
- radiobutton1=lookup_widget(button,"radiobutton_etanche");
- radiobutton2=lookup_widget(button,"radiobutton_perm");
- radiobutton3=lookup_widget(button,"radiobuttonNone");
- checkbox1 =lookup_widget(button,"checkbutton_Inter");
- checkbox2 =lookup_widget(button,"checkbutton_exter");
- 
- strcpy(c.id,gtk_entry_get_text(GTK_ENTRY(entry1)));
- strcpy(c.marque,gtk_entry_get_text(GTK_ENTRY(entry2)));
- strcpy(c.place,gtk_entry_get_text(GTK_ENTRY(entry3)));
- strcpy(c.type,gtk_combo_box_get_active_text(GTK_COMBO_BOX(combobox)));
- valmin =gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (spinbutton1));
- sprintf(c.valMin ,"%d",valmin) ;
- valmax =gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (spinbutton2));
- sprintf(c.valMax ,"%d",valmax) ;
- if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radiobutton1)))
-  {strcpy(c.perm,"Etanche");}
- else if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(radiobutton2)))
-  {strcpy(c.perm,"Permeable");}
- else  {strcpy(c.inOut,"None");}
- if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(checkbox1)))
-  {strcpy(c.inOut,"Interieur");}
-if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(checkbox2)))
-  {strcpy(c.inOut,"Exterieur");}
-  
- if ( ajout_capteur("capteur.txt",c ) ) 
-  {   dialog1 = create_dialogAjoutSucc ();
-      gtk_widget_show (dialog1); 
-   }  
- 
- 
-}
-
-
-void
-on_buttonAnullerAjout_clicked          (GtkWidget       *objet,
-                                        gpointer         user_data) /// 1er bouton ajouter clicked
-{
-GtkWidget *form;
-GtkWidget *princ;
-GtkListStore *treeview;
-GtkWidget *scrolledwindow1;
-
-
-form=lookup_widget(objet,"windowAjouterCap");
-gtk_widget_destroy(form);
-princ=lookup_widget(objet,"windowGestion_Capteur");
-princ=create_windowGestion_Capteur();
-gtk_widget_show(princ);
-//gtk_container_add (GTK_CONTAINER (scrolledwindow1), treeview);
-//gtk_container_add (GTK_CONTAINER (princ), scrolledwindow1);
-  treeview=lookup_widget(princ,"treeview2");
-afficher_cap(treeview);
-}
-
-
-void
-on_modifFinalCap_clicked               (GtkButton       *button,
-                                        gpointer         user_data)
-{
-
-}
-
-
-void
-on_buttonDeconnexion_clicked           (GtkButton       *button,
-                                        gpointer         user_data)
-{
-
-}
-
-
-void
-on_closebutton_AjoutSucc_clicked       (GtkButton       *button,
-                                        gpointer         user_data)
-{
-
-}
-
-
-void
-on_closebutton_Erreur_clicked          (GtkButton       *button,
-                                        gpointer         user_data)
-{
-
-}
-
-
-void
-on_button1_clicked                     (GtkWidget       *objet,
-                                        gpointer         user_data) /// acceder a l'espace gestion des capteurs
-{
-
-
-GtkWidget *affichage;
-GtkWidget *fenetre1;
-GtkListStore *treeview2;
-GtkWidget *scrolledwindow1;
-
-
-fenetre1=lookup_widget(objet,"window1");
-gtk_widget_destroy(fenetre1);
-affichage=lookup_widget(objet,"windowGestion_Capteur");
-affichage=create_windowGestion_Capteur();
-gtk_widget_show(affichage);
-//gtk_container_add (GTK_CONTAINER (scrolledwindow1), treeview2);
-//gtk_container_add (GTK_CONTAINER (affichage), scrolledwindow1);
-treeview2=lookup_widget(affichage,"treeview2");
-afficher_cap(treeview2);
-}
-
-
-void
-on_buttonValiderSuppCap_clicked        (GtkWidget       *objet,
-                                        gpointer         user_data)  /// valider la suppression du capteur 
-{
-   GtkWidget *affichage;
-   GtkWidget  *message ;
-   GtkListStore *treeview2;
-   GtkWidget *liste;
-
-
-
-    FILE* f1;
-    capteur c ; 
-     char id[20] ;
-  
-
-f1=fopen("idtmp.txt","r");
-  if(f1!=NULL) 
-  {
-  fscanf(f1,"%s \n",id);
-  fclose(f1);}
-  remove("idtmp.txt");
-
-  gtk_list_store_set (listf,&iter1,SELECTION, FALSE,-1);
- if ( supp_capteur("capteur.txt", id ))  
-{
-  affichage = lookup_widget(objet,"windowGestion_Capteur"); 
-  //affichage=create_windowGestion_Capteur();
-  
- 
-  // gtk_widget_show(affichage);
-   message=lookup_widget(objet,"windowConfirmSupp");
-
-    gtk_widget_hide(message);
- gtk_widget_hide(affichage);
- gtk_widget_show(affichage);
-treeview2=lookup_widget(affichage,"treeview2");
-
-   // store=gtk_tree_view_get_model(GTK_TREE_VIEW(liste));
-    afficher_cap(treeview2);
-}
-      /// segmentation error !!!!
-  
-
-
-}
-
 
