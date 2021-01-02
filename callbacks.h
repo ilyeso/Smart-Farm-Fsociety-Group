@@ -1,16 +1,13 @@
 #include <gtk/gtk.h>
 
 
-
 void
-on_buttonAjouter_appareil_clicked      (GtkWidget       *Button,
+on_Ajouter_ouvrier_clicked             (GtkWidget       *button,
                                         gpointer         user_data);
 
 void
-on_ButtonAfficher_liste_appareils_clicked
-                                        (GtkWidget       *Button,
+on_Afficher_liste_clicked              (GtkWidget       *button,
                                         gpointer         user_data);
-
 
 void
 on_treeview1_row_activated             (GtkTreeView     *treeview,
@@ -18,50 +15,72 @@ on_treeview1_row_activated             (GtkTreeView     *treeview,
                                         GtkTreeViewColumn *column,
                                         gpointer         user_data);
 
+void
+on_retour_clicked                      (GtkWidget      *button,
+                                        gpointer         user_data);
+
+
 
 void
-on_buttonRetour_liste_clicked          (GtkWidget       *Button,
+on_valider_clicked                     (GtkWidget       *button,
                                         gpointer         user_data);
 
 void
-on_buttonValidation_de_reservation_clicked
-                                        (GtkWidget       *objet_graphique,
+on_Pointage_clicked                    (GtkWidget       *button,
                                         gpointer         user_data);
 
 void
-on_buttonConfirmer_clicked             (GtkWidget       *objet_graphique,
+on_RetourP_clicked                     (GtkWidget       *button,
                                         gpointer         user_data);
 
 void
-on_buttonsuivant_clicked               (GtkWidget       *button,
+on_buttonsuivant1_clicked              (GtkWidget       *button,
+                                        gpointer         user_data);
+
+
+
+void
+on_Rechercher_ouvrier_clicked          (GtkWidget       *button,
                                         gpointer         user_data);
 
 void
-on_buttonconfirmationfinale_clicked    (GtkWidget       *button,
+on_Modifier_ouvrier_clicked            (GtkWidget       *objet,
                                         gpointer         user_data);
 
 void
-on_buttonRETOUR_WINDOW4_clicked        (GtkWidget       *button,
+on_Retour_Modification_clicked         (GtkWidget       *objet,
                                         gpointer         user_data);
 
 void
-on_buttonsuivantwindow3_clicked        (GtkWidget       *button,
+on_Non_attention_clicked               (GtkWidget       *button,
                                         gpointer         user_data);
 
 void
-on_radiobuttonPanneexterne_toggled     (GtkToggleButton *togglebutton,
+on_Oui_attention_clicked               (GtkWidget       *button,
                                         gpointer         user_data);
 
 void
-on_radiobuttonPanneinterne_toggled     (GtkToggleButton *togglebutton,
+on_supprimer_ouvrier_clicked           (GtkWidget       *button,
                                         gpointer         user_data);
 
 void
-on_radiobuttonPanneexterne_toggled     (GtkToggleButton *togglebutton,
+on_OK_op_clicked                       (GtkWidget       *button,
                                         gpointer         user_data);
 
 void
-on_radiobuttonPanneinterne_toggled     (GtkToggleButton *togglebutton,
+on_radiobuttonPresent_toggled          (GtkToggleButton *togglebutton,
+                                        gpointer         user_data);
+
+void
+on_radiobuttonabsent_toggled           (GtkToggleButton *togglebutton,
+                                        gpointer         user_data);
+
+void
+on_Okattention_clicked                 (GtkWidget       *button,
+                                        gpointer         user_data);
+
+void
+on_checkbuttonnon_toggled              (GtkToggleButton *togglebutton,
                                         gpointer         user_data);
 
 void
@@ -69,29 +88,13 @@ on_checkbuttonoui_toggled              (GtkToggleButton *togglebutton,
                                         gpointer         user_data);
 
 void
-on_checkbuttonNon_toggled              (GtkToggleButton *togglebutton,
+on_Confirmer_p_clicked                 (GtkWidget      *objet_graphique,
                                         gpointer         user_data);
 
 void
-on_buttonokwindow5_clicked             (GtkWidget       *button,
+on_Supprimer_modification_clicked      (GtkButton       *button,
                                         gpointer         user_data);
 
 void
-on_buttonretourwindow5_clicked         (GtkWidget       *button,
-                                        gpointer         user_data);
-
-void
-on_buttonsuppressionwindow7_clicked    (GtkButton       *button,
-                                        gpointer         user_data);
-
-void
-on_buttonmodifierwindow7_clicked       (GtkButton       *button,
-                                        gpointer         user_data);
-
-void
-on_buttonrecherchewindow7_clicked      (GtkButton       *button,
-                                        gpointer         user_data);
-
-void
-on_buttonsuppressionwindow8_clicked    (GtkButton       *button,
+on_Modifier_liste_ouvrier_clicked      (GtkWidget       *button,
                                         gpointer         user_data);

@@ -15,8 +15,13 @@
 int
 main (int argc, char *argv[])
 {
-  GtkWidget *fenetre_ajouter;
- GtkWidget *fenetre_afficher;
+  GtkWidget *ajouter_ouvrier;
+  GtkWidget *liste_des_ouvriers;
+  GtkWidget *Pointage_ouvrier;
+  GtkWidget *Modifier_ouvrier;
+  GtkWidget *alerte;
+  GtkWidget *operation_reussie;
+  GtkWidget *operation_non_reussie;
 
 #ifdef ENABLE_NLS
   bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
@@ -34,8 +39,20 @@ main (int argc, char *argv[])
    * (except popup menus), just so that you see something after building
    * the project. Delete any components that you don't want shown initially.
    */
-  fenetre_ajouter = create_fenetre_ajouter ();
-  gtk_widget_show (fenetre_ajouter);
+  ajouter_ouvrier = create_ajouter_ouvrier ();
+  gtk_widget_show (ajouter_ouvrier);
+  liste_des_ouvriers = create_liste_des_ouvriers ();
+  gtk_widget_show (liste_des_ouvriers);
+  Pointage_ouvrier = create_Pointage_ouvrier ();
+  gtk_widget_show (Pointage_ouvrier);
+  Modifier_ouvrier = create_Modifier_ouvrier ();
+  gtk_widget_show (Modifier_ouvrier);
+  alerte = create_alerte ();
+  gtk_widget_show (alerte);
+  operation_reussie = create_operation_reussie ();
+  gtk_widget_show (operation_reussie);
+  operation_non_reussie = create_operation_non_reussie ();
+  gtk_widget_show (operation_non_reussie);
 
   gtk_main ();
   return 0;
